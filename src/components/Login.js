@@ -1,12 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom'; 
 
 const Login = () => {
-    
+    const [error, setError] = useState('');
+    const [credentials, setCredentials] = useState({
+      username: '',
+      password: ''
+    })
+    const { push } = useHistory();
+
+    const handleChange = e=>{
+        setCredentials({
+            ...credentials,
+            [e.target.id]: e.target.value
+        })
+    }
+    const handleSubmit = e=>{
+        e.preventDefault();
+        axios.post('http://localhost:5000/api/login', credentials)
+            .then(esp=>{
+                localStorage.setItem('token', esp.data.token);
+                localStorage.setItem('role', esp.data.role);
+                localStorage.setItem('username', esp.data.username);
+                push('/view');
+            })
+            .catch(err=>{
+                setError(err.response.data.error);
+            })
+    }
+
     return(<ComponentContainer>
         <ModalContainer>
             <h1>Welcome to Blogger Pro</h1>
             <h2>Please enter your account information.</h2>
+            <FormGroup onSubmit={handleSubmit}>
+                <Label>Username: </Label>
+                <Input 
+                    type='text'
+                    id='username'
+                    value={credentials.username}
+                    onChange={handleChange} />
+                <Label>Password: </Label>
+                <Input
+                    type='password'
+                    id='password'
+                    value={credentials.password}
+                    onChange={handleChange} />
+                <Button id='submit'>Click to Login</Button>
+            </FormGroup>
+            <p id='error'>{error}</p>
         </ModalContainer>
     </ComponentContainer>);
 }
@@ -46,12 +90,15 @@ const FormGroup = styled.form`
 `
 
 const Input = styled.input`
-    font-size: 1rem;
-    padding: 1rem 0;
+    font-size: 1.2rem;
+    padding: 1rem .2rem;
     width:100%;
 `
 
 const Button = styled.button`
     padding:1rem;
     width: 100%;
+    font-size: 1.2rem;
+    background-color: skyblue;
+    margin-top: .5rem;
 `
